@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="JLPT N2 Grammar Notification App - မြန်မာဘာသာပြန်ဖြင့် N2 သဒ္ဒါ လေ့လာပါ">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="N2 Grammar">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    <title>N2 Grammar Noti - JLPT N2 သဒ္ဒါ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Splash Screen -->
+        <div id="splash-screen" class="splash-screen">
+            <div class="splash-content">
+                <div class="splash-icon">文</div>
+                <h1 class="splash-title">N2 Grammar</h1>
+                <p class="splash-subtitle">JLPT N2 သဒ္ဒါ မြန်မာဘာသာပြန်</p>
+                <div class="splash-loader">
+                    <div class="loader-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App -->
+        <div id="main-app" class="main-app hidden">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h1 class="app-title">N2 文法</h1>
+                </div>
+                <div class="header-right">
+                    <button id="btn-search-toggle" class="icon-btn" aria-label="Search">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                    <button id="btn-noti-settings" class="icon-btn noti-btn" aria-label="Notification Settings">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="noti-badge" id="noti-badge"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Search Bar (hidden by default) -->
+            <div id="search-bar" class="search-bar hidden">
+                <div class="search-input-wrapper">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="search-input" placeholder="grammar ရှာပါ..." autocomplete="off">
+                    <button id="btn-search-clear" class="search-clear-btn" aria-label="Clear search">✕</button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="home">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>Home</span>
+                </button>
+                <button class="tab-btn" data-tab="grammar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <span>Grammar</span>
+                </button>
+                <button class="tab-btn" data-tab="quiz">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Quiz</span>
+                </button>
+                <button class="tab-btn" data-tab="saved">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    <span>Saved</span>
+                </button>
+            </nav>
+
+            <!-- Pages -->
+            <main class="pages-container">
+                <!-- HOME PAGE -->
+                <section id="page-home" class="page active">
+                    <div class="home-content">
+                        <!-- Daily Grammar Card -->
+                        <div class="daily-card" id="daily-card">
+                            <div class="daily-card-header">
+                                <span class="daily-label">📖 ယနေ့ Grammar</span>
+                                <button id="btn-refresh-daily" class="refresh-btn" aria-label="Refresh">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                </button>
+                            </div>
+                            <h2 class="daily-grammar" id="daily-grammar"></h2>
+                            <p class="daily-reading" id="daily-reading"></p>
+                            <p class="daily-meaning" id="daily-meaning"></p>
+                            <div class="daily-pattern" id="daily-pattern"></div>
+                            <div class="daily-example" id="daily-example"></div>
+                            <div class="daily-actions">
+                                <button id="btn-daily-save" class="action-btn save-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                                    Save
+                                </button>
+                                <button id="btn-daily-detail" class="action-btn detail-btn">
+                                    ကြည့်မယ် →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="progress-section">
+                            <h3 class="section-title">📊 Progress</h3>
+                            <div class="progress-cards">
+                                <div class="progress-card">
+                                    <div class="progress-number" id="total-studied">0</div>
+                                    <div class="progress-label">လေ့လာပြီး</div>
+                                </div>
+                                <div class="progress-card">
+                                    <div class="progress-number" id="total-saved">0</div>
+                                    <div class="progress-label">သိမ်းထား</div>
+                                </div>
+                                <div class="progress-card">
+                                    <div class="progress-number" id="quiz-score">0</div>
+                                    <div class="progress-label">Quiz မှတ်</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-label">
+                                    <span>Overall Progress</span>
+                                    <span id="progress-percent">0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings -->
+                        <div class="noti-settings-section" id="noti-settings-section">
+                            <h3 class="section-title">🔔 Notification Settings</h3>
+                            <div class="noti-card">
+                                <div class="noti-toggle-row">
+                                    <span>Grammar Notification</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="noti-toggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="noti-interval-row">
+                                    <span>Interval</span>
+                                    <select id="noti-interval" class="noti-select">
+                                        <option value="30">၃၀ မိနစ်</option>
+                                        <option value="60" selected>၁ နာရီ</option>
+                                        <option value="120">၂ နာရီ</option>
+                                        <option value="180">၃ နာရီ</option>
+                                        <option value="360">၆ နာရီ</option>
+                                    </select>
+                                </div>
+                                <div class="noti-status" id="noti-status">
+                                    Notification မဖွင့်ရသေးပါ
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- GRAMMAR LIST PAGE -->
+                <section id="page-grammar" class="page">
+                    <div class="grammar-list-header">
+                        <h3 class="section-title">📚 Grammar List (<span id="grammar-count">131</span>)</h3>
+                        <div class="filter-row">
+                            <button class="filter-btn active" data-filter="all">အားလုံး</button>
+                            <button class="filter-btn" data-filter="studied">လေ့လာပြီး</button>
+                            <button class="filter-btn" data-filter="not-studied">မလေ့လာရသေး</button>
+                        </div>
+                    </div>
+                    <div class="grammar-list" id="grammar-list"></div>
+                </section>
+
+                <!-- QUIZ PAGE -->
+                <section id="page-quiz" class="page">
+                    <div class="quiz-container">
+                        <div id="quiz-start" class="quiz-start">
+                            <div class="quiz-start-icon">🎯</div>
+                            <h2>Grammar Quiz</h2>
+                            <p>N2 Grammar ဘယ်လောက်တတ်လဲ စမ်းကြည့်ပါ</p>
+                            <div class="quiz-options">
+                                <label class="quiz-option">
+                                    <input type="radio" name="quiz-count" value="5" checked>
+                                    <span>5 မေးခွန်း</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="quiz-count" value="10">
+                                    <span>10 မေးခွန်း</span>
+                                </label>
+                                <label class="quiz-option">
+                                    <input type="radio" name="quiz-count" value="20">
+                                    <span>20 မေးခွန်း</span>
+                                </label>
+                            </div>
+                            <button id="btn-start-quiz" class="start-quiz-btn">Quiz စမယ်</button>
+                        </div>
+                        <div id="quiz-active" class="quiz-active hidden">
+                            <div class="quiz-progress-bar">
+                                <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                            </div>
+                            <div class="quiz-counter">
+                                <span id="quiz-current">1</span> / <span id="quiz-total">5</span>
+                            </div>
+                            <div class="quiz-question-card" id="quiz-question-card">
+                                <div class="quiz-grammar" id="quiz-grammar"></div>
+                                <div class="quiz-pattern" id="quiz-pattern"></div>
+                                <div class="quiz-choices" id="quiz-choices"></div>
+                            </div>
+                        </div>
+                        <div id="quiz-result" class="quiz-result hidden">
+                            <div class="result-icon" id="result-icon">🎉</div>
+                            <h2 id="result-title">ကောင်းပါတယ်!</h2>
+                            <div class="result-score">
+                                <span id="result-correct">0</span> / <span id="result-total">5</span>
+                            </div>
+                            <p id="result-message"></p>
+                            <button id="btn-retry-quiz" class="start-quiz-btn">ထပ်ကစားမယ်</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SAVED PAGE -->
+                <section id="page-saved" class="page">
+                    <div class="saved-header">
+                        <h3 class="section-title">⭐ Saved Grammar (<span id="saved-count">0</span>)</h3>
+                    </div>
+                    <div id="saved-list" class="grammar-list"></div>
+                    <div id="saved-empty" class="empty-state">
+                        <div class="empty-icon">📌</div>
+                        <p>သိမ်းထားတဲ့ grammar မရှိသေးပါ</p>
+                        <p class="empty-hint">Grammar ကတ်မှာ bookmark ခလုတ် နှိပ်ပြီး သိမ်းပါ</p>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Grammar Detail Modal -->
+            <div id="grammar-modal" class="modal hidden">
+                <div class="modal-overlay"></div>
+                <div class="modal-content">
+                    <button id="btn-modal-close" class="modal-close-btn">✕</button>
+                    <div class="modal-body">
+                        <div class="modal-id-badge" id="modal-id"></div>
+                        <h2 class="modal-grammar" id="modal-grammar"></h2>
+                        <p class="modal-reading" id="modal-reading"></p>
+                        <div class="modal-section">
+                            <h4>🇲🇲 Myanmar</h4>
+                            <p id="modal-meaning-mm" class="modal-meaning-text"></p>
+                        </div>
+                        <div class="modal-section">
+                            <h4>🇬🇧 English</h4>
+                            <p id="modal-meaning-en" class="modal-meaning-text"></p>
+                        </div>
+                        <div class="modal-section">
+                            <h4>📝 Pattern</h4>
+                            <p id="modal-pattern" class="modal-pattern-text"></p>
+                        </div>
+                        <div class="modal-section">
+                            <h4>💡 Notes</h4>
+                            <p id="modal-notes" class="modal-notes-text"></p>
+                        </div>
+                        <div class="modal-section">
+                            <h4>📖 Examples</h4>
+                            <div id="modal-examples" class="modal-examples"></div>
+                        </div>
+                        <div class="modal-actions">
+                            <button id="btn-modal-save" class="action-btn save-btn modal-save-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                                Save
+                            </button>
+                            <button id="btn-modal-studied" class="action-btn studied-btn">
+                                ✓ လေ့လာပြီး
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Toast -->
+            <div id="toast" class="toast hidden">
+                <span id="toast-message"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
