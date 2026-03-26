@@ -47,6 +47,49 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
+// ===== Background Notification Timer (for mobile) =====
+let _notiTimer = null;
+let _notiIntervalMs = 60 * 60 * 1000;
+
+async function _sendGrammarNoti() {
+    const response = await caches.match('./n2_shinkanzen_grammar_mm.json');
+    if (!response) return;
+    const data = await response.json();
+    const grammarPoints = data.grammar_points;
+    if (!grammarPoints || grammarPoints.length === 0) return;
+    const randomG = grammarPoints[Math.floor(Math.random() * grammarPoints.length)];
+    return self.registration.showNotification(`📖 ${randomG.grammar}`, {
+        body: `${randomG.meaning_myanmar}\n${randomG.english}`,
+        icon: 'icons/icon-192.svg',
+        badge: 'icons/icon-192.svg',
+        tag: 'n2-grammar-noti',
+        renotify: true,
+        vibrate: [100, 50, 100],
+        data: { grammarId: randomG.id }
+    });
+}
+
+function _scheduleNoti() {
+    if (_notiTimer) clearTimeout(_notiTimer);
+    _notiTimer = setTimeout(async () => {
+        await _sendGrammarNoti();
+        _scheduleNoti();
+    }, _notiIntervalMs);
+}
+
+self.addEventListener('message', (event) => {
+    const { type, interval } = event.data || {};
+    if (type === 'START_NOTI') {
+        _notiIntervalMs = (interval || 60) * 60 * 1000;
+        _scheduleNoti();
+    } else if (type === 'STOP_NOTI') {
+        if (_notiTimer) {
+            clearTimeout(_notiTimer);
+            _notiTimer = null;
+        }
+    }
+});
+
 // Background Notification (for when the app is in background)
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();

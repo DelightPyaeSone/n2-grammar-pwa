@@ -578,6 +578,14 @@
         notiTimerId = null;
         updateNotiStatus(false);
         showToast('🔕 Notification ပိတ်ပြီးပါပြီ');
+
+        // Stop SW-based timer
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+                const sw = navigator.serviceWorker.controller || reg.active;
+                if (sw) sw.postMessage({ type: 'STOP_NOTI' });
+            }).catch(() => {});
+        }
     }
 
     function startNotiTimer() {
@@ -585,6 +593,14 @@
         notiTimerId = setInterval(() => {
             sendGrammarNoti();
         }, notiInterval * 60 * 1000);
+
+        // SW-based timer for mobile background notifications
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+                const sw = navigator.serviceWorker.controller || reg.active;
+                if (sw) sw.postMessage({ type: 'START_NOTI', interval: notiInterval });
+            }).catch(() => {});
+        }
     }
 
     function restartNotiTimer() {
@@ -599,20 +615,29 @@
         const randomG = grammarData[Math.floor(Math.random() * grammarData.length)];
         if (!randomG) return;
 
-        const noti = new Notification(`📖 ${randomG.grammar}`, {
-            body: `${randomG.meaning_myanmar}\n${randomG.english}`,
-            icon: 'icons/icon-192.svg',
-            badge: 'icons/icon-192.svg',
-            tag: 'n2-grammar-noti',
-            renotify: true,
-            vibrate: [100, 50, 100]
-        });
-
-        noti.onclick = () => {
-            window.focus();
-            openModal(randomG);
-            noti.close();
-        };
+        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(`📖 ${randomG.grammar}`, {
+                    body: `${randomG.meaning_myanmar}\n${randomG.english}`,
+                    icon: 'icons/icon-192.svg',
+                    badge: 'icons/icon-192.svg',
+                    tag: 'n2-grammar-noti',
+                    renotify: true,
+                    vibrate: [100, 50, 100],
+                    data: { grammarId: randomG.id }
+                });
+            });
+        } else {
+            // Fallback
+            new Notification(`📖 ${randomG.grammar}`, {
+                body: `${randomG.meaning_myanmar}\n${randomG.english}`,
+                icon: 'icons/icon-192.svg',
+                badge: 'icons/icon-192.svg',
+                tag: 'n2-grammar-noti',
+                renotify: true,
+                vibrate: [100, 50, 100]
+            });
+        }
     }
 
     function updateNotiStatus(active) {
