@@ -11,6 +11,10 @@
     let notiEnabled = localStorage.getItem('n2_noti_enabled') === 'true';
     let notiInterval = parseInt(localStorage.getItem('n2_noti_interval') || '60');
     let notiTimerId = null;
+    let oneSignal = null;
+
+    // OneSignal App ID - onesignal.com မှာ account ဆောက်ပြီး ရလာသော ID ကို ဒီနေရာ ထည့်ပါ
+    const ONESIGNAL_APP_ID = '98270062-445c-4652-a5ca-f2222a4272f5';
     let currentFilter = 'all';
     let currentModalGrammar = null;
     let quizQuestions = [];
@@ -45,6 +49,7 @@
         renderGrammarList();
         renderSavedList();
         loadNotiSettings();
+        initOneSignal();
 
         // Splash -> Main
         setTimeout(() => {
@@ -537,6 +542,21 @@
         }
     }
 
+    // ===== OneSignal Init =====
+    function initOneSignal() {
+        if (!ONESIGNAL_APP_ID || ONESIGNAL_APP_ID === 'YOUR_ONESIGNAL_APP_ID') return;
+
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async function (os) {
+            oneSignal = os;
+            await os.init({
+                appId: ONESIGNAL_APP_ID,
+                serviceWorkerPath: 'OneSignalSDKWorker.js',
+                notifyButton: { enable: false }
+            });
+        });
+    }
+
     // ===== Notifications =====
     function loadNotiSettings() {
         $('#noti-toggle').checked = notiEnabled;
@@ -555,15 +575,24 @@
             return;
         }
 
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
+        // OneSignal ရှိရင် OneSignal မှတဆင့် permission တောင်းသည် (screen-lock support)
+        if (oneSignal) {
+            try {
+                await oneSignal.Notifications.requestPermission();
+                if (oneSignal.Notifications.permission) {
+                    await oneSignal.User.PushSubscription.optIn();
+                }
+            } catch (e) { }
+        } else {
+            await Notification.requestPermission();
+        }
+
+        if (Notification.permission === 'granted') {
             notiEnabled = true;
             localStorage.setItem('n2_noti_enabled', 'true');
             startNotiTimer();
             updateNotiStatus(true);
             showToast('🔔 Notification ဖွင့်ပြီးပါပြီ');
-
-            // Send a test notification
             sendGrammarNoti();
         } else {
             $('#noti-toggle').checked = false;
@@ -579,12 +608,17 @@
         updateNotiStatus(false);
         showToast('🔕 Notification ပိတ်ပြီးပါပြီ');
 
+        // OneSignal unsubscribe
+        if (oneSignal) {
+            oneSignal.User.PushSubscription.optOut().catch(() => { });
+        }
+
         // Stop SW-based timer
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(reg => {
                 const sw = navigator.serviceWorker.controller || reg.active;
                 if (sw) sw.postMessage({ type: 'STOP_NOTI' });
-            }).catch(() => {});
+            }).catch(() => { });
         }
     }
 
@@ -599,7 +633,7 @@
             navigator.serviceWorker.ready.then(reg => {
                 const sw = navigator.serviceWorker.controller || reg.active;
                 if (sw) sw.postMessage({ type: 'START_NOTI', interval: notiInterval });
-            }).catch(() => {});
+            }).catch(() => { });
         }
     }
 
